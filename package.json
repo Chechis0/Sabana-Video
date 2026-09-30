@@ -1,0 +1,17 @@
+{
+  "name": "arboles-para-mi-pais",
+  "version": "1.0.0",
+  "description": "Filminuto animado a lápiz de color, 100% dibujado en JavaScript: Árboles para mi País (Fundación Parque Jaime Duque).",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "audio": "node src/audio/render-audio.js",
+    "frames": "node src/render.js",
+    "still": "node src/still.js",
+    "build": "node src/build.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.9"
+  }
+}
