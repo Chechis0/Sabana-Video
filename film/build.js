@@ -40,7 +40,7 @@ const ln = meas
 
 // 3) codificación final en dos pasadas (~10 Mbps): conserva el grano del lápiz
 const out = path.join(outDir, 'sembrar_agua_41s.mp4');
-const vopts = ['-c:v', 'libx264', '-preset', 'slow', '-b:v', '10M', '-maxrate', '15M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-tune', 'grain'];
+const vopts = ['-c:v', 'libx264', '-preset', 'slow', '-b:v', '9200k', '-maxrate', '14M', '-bufsize', '20M', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-level', '4.2', '-tune', 'grain'];
 const passlog = path.join(segDir, 'x264pass');
 execFileSync(ff, ['-y', '-loglevel', 'error', '-i', joined, ...vopts, '-pass', '1', '-passlogfile', passlog, '-an', '-f', 'mp4', '/dev/null'], { stdio: 'inherit' });
 execFileSync(ff, [
