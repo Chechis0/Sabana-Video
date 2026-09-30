@@ -13,6 +13,10 @@ export function handText(D, str, cx, y, size, color, k, o = {}) {
   const ctx = D.ctx;
   const font = o.font || 'CaveatBold';
   ctx.font = `${size}px ${font}`;
+  if (o.maxW) {
+    const w0 = ctx.measureText(str).width * (o.spacing ?? 1);
+    if (w0 > o.maxW) { size = Math.floor((size * o.maxW) / w0); ctx.font = `${size}px ${font}`; }
+  }
   ctx.textBaseline = 'alphabetic';
   const chars = [...str];
   const widths = chars.map((c) => ctx.measureText(c).width);
@@ -24,7 +28,13 @@ export function handText(D, str, cx, y, size, color, k, o = {}) {
   for (let i = 0; i < n; i++) {
     const c = chars[i];
     const w = widths[i] * (o.spacing ?? 1);
-    const appear = clamp(k * (n + 6) - i) / 1; // ola de letras
+    // 'words': cada palabra entra completa (lectura inmediata); si no, ola de letras
+    let appear;
+    if (o.mode === 'words') {
+      const wi = [...str.slice(0, i)].filter((c) => c === ' ').length;
+      const nw = str.split(' ').length;
+      appear = clamp(k * (nw + 1.5) - wi);
+    } else appear = clamp(k * (n + 6) - i);
     const a = clamp(appear * 1.6);
     if (a <= 0) { x += w; continue; }
     const sc = ease.outBack(clamp(appear), 2.2);

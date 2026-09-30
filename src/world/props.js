@@ -107,11 +107,18 @@ export function treeHeight(kind, size) {
   return (s.th + s.cr * s.crown[1] * 2) * size;
 }
 
+// caja que ocupa el árbol adulto (relativa a su base): copa + tronco
+export function treeBox(kind, size) {
+  const s = TREE_STYLE[kind] || TREE_STYLE.roble;
+  const rx = s.cr * s.crown[0] * size * 1.1, ry = s.cr * s.crown[1] * size * 1.1, th = s.th * size;
+  return { rx, top: -(th + 1.8 * ry), crownBottom: -(th - 0.3 * ry), trunkW: 11 * size, th };
+}
+
 // g: 0..1 crecimiento (0 = semilla/plántula, 1 = árbol adulto)
 export function drawTree(D, tr, t, g = 1, o = {}) {
   const st = TREE_STYLE[tr.kind] || TREE_STYLE.roble;
   const size = tr.size;
-  if (g <= 0.001) return;
+  if (g <= 0.001 || tr.hidden) return;
   const H = treeHeight(tr.kind, size);
   if (!D.visible(tr.x, tr.y - H * 0.5, H * 0.7 + 30)) return;
   const ps = D.ps;

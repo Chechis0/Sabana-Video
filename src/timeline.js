@@ -6,15 +6,15 @@ export const BEAT = 0.5;
 
 export const T = {
   // 1 · Páramo al amanecer: nace la gota
-  fadeIn: [0, 1.1],
-  condense: [1.0, 2.7],
-  eyesOpen: 3.0,
-  lookAround: [3.2, 3.9],
-  fall: 4.05, land: 4.5,
-  slideToPool: [4.75, 5.55],
-  poolSplash: 5.55,
+  fadeIn: [-1, -0.5], // sin fundido: el primer cuadro ya muestra a la protagonista
+  condense: [0.0, 1.3],
+  eyesOpen: 1.6,
+  lookAround: [1.9, 2.7],
+  fall: 3.35, land: 3.8,
+  slideToPool: [4.05, 4.85],
+  poolSplash: 4.85,
   // 2 · Descenso por el bosque
-  ride: [5.8, 12.0],
+  ride: [5.1, 12.0],
   bird: [7.6, 10.2],
   bearDrink: [9.0, 11.6],
   // 3 · El potrero seco
@@ -41,11 +41,11 @@ export const T = {
   leap: [32.45, 33.05],
   sprout: 33.3,
   // 7 · Revelación
-  zoomOut: [33.95, 36.1],
-  leafOut: [35.7, 37.6],
-    title1: 37.0,
-  title2: 37.7,
-  credits: 38.3,
+  zoomOut: [33.95, 35.9],
+  leafOut: [35.2, 36.9],
+    title1: 36.5,
+  title2: 37.1,
+  credits: 37.8,
   end: 40,
 };
 

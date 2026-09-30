@@ -75,9 +75,9 @@ export const PLACES = {
   moss: [1196, 880],
   pool: [1180, 962],
   bearA: [1300, 1405], // oso bebiendo
-  bearEdge: [1112, 1575],
+  bearEdge: [1010, 1445],
   bearB: [1318, 2118],
-  meet: [1246, 1902],
+  meet: [1228, 2094],
   garden: [1236, 4318],
   kid: [1188, 4304],
   sprout: [1246, 4312],
@@ -153,8 +153,9 @@ export const plantings = plantTimes.map((t, i) => {
 // la plántula que la niña deja junto a la gota (escena 4) es la siembra #4
 {
   const p = L1.at(sStuck);
-  plantings[4].x = p.x - p.nx * 40;
-  plantings[4].y = p.y - p.ny * 40 + 4;
+  // queda un poco detrás de la gota: al crecer le da sombra sin taparla
+  plantings[4].x = p.x - p.nx * 46;
+  plantings[4].y = p.y - 14;
   plantings[4].kind = 'siete';
 }
 
@@ -337,7 +338,7 @@ for (let i = 0; i < 16; i++) {
   const side = rng() < 0.5 ? -1 : 1;
   const d = 70 + rng() * 240;
   const x = p.x + p.nx * d * side, yy = p.y + p.ny * d * side;
-  if (plantings.some((pl) => Math.hypot(pl.x - x, pl.y - yy) < 50)) continue;
+  if (plantings.some((pl) => Math.hypot(pl.x - x, pl.y - yy) < 95)) continue;
   stumps.push({ x, y: yy, s: 0.7 + rng() * 0.5, seed: 300 + i });
 }
 for (let i = 0; i < 40; i++) {

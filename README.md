@@ -39,8 +39,8 @@ Poco texto y mucha narrativa visual. Las únicas palabras están en el cierre.
 
 | Tiempo | Escena | Qué se ve | Qué cuenta |
 |---|---|---|---|
-| 0–6 s | **Páramo al amanecer** | Niebla entre frailejones; una gota se condensa, abre los ojos, cae y llega al nacimiento. | El páramo "fabrica" el agua. |
-| 6–12 s | **El bosque** | La gota baja por la quebrada; un colibrí la saluda y un osezno bebe. | Bosque sano = agua que corre. |
+| 0–5 s | **Páramo al amanecer** | Primer cuadro en primer plano: la gota ya está naciendo en la punta de una hoja de frailejón. La cámara se abre al páramo, la gota cae y llega al nacimiento. | El páramo "fabrica" el agua. |
+| 5–12 s | **El bosque** | La gota baja por la quebrada; un colibrí la saluda y un osezno bebe. | Bosque sano = agua que corre. |
 | 12–16 s | **El potrero** | Tocones y tierra agrietada; la quebrada se corta, la gota se evapora. La osa y su cría quedan separadas. | La fragmentación rompe el agua y la vida. |
 | 16–18 s | **Una plántula** | Una niña deja una plántula junto a la gota y llega la comunidad. | La esperanza llega por las personas. |
 | 18–28 s | **Sembrar** | Doce árboles nativos se siembran al compás de la música. Crecen, llueve, el suelo guarda el agua y la quebrada revive. | Restaurar el corredor devuelve el agua. |
@@ -61,6 +61,14 @@ Poco texto y mucha narrativa visual. Las únicas palabras están en el cierre.
 - **Tipografías:** *Caveat* y *Patrick Hand*, de Google Fonts, con licencia SIL Open Font License 1.1 (uso libre;
   licencias en `assets/fonts/`).
 - **Contenido:** apto para todo público y sin elementos ofensivos ni discriminatorios.
+
+## Lógica de profundidad
+
+Los personajes (gota, osos, sembradores, niños) se ordenan **junto con** los árboles según el punto donde pisan. Así, un
+árbol que está delante de un personaje lo tapa y uno que está detrás queda detrás. Al cargar la escena se recorre toda la
+película cada 0,1 s. Si un árbol del paisaje llegaría a tapar a un personaje en un momento clave, ese árbol no se planta.
+Los puntos donde actúan los personajes (el osezno que mira, el reencuentro, los sembradores que observan) están ubicados
+fuera de las copas del corredor sembrado.
 
 ## Técnica
 

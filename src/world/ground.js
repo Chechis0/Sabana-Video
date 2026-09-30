@@ -124,7 +124,7 @@ const rocks = [[1238, 902, 0.9], [1120, 930, 0.7], [1215, 985, 0.6], [1150, 1010
 // ---------------------------------------------------------------- dibujo
 export function sunPos(t) {
   // amanecer detrás de la cresta; al final alto a la derecha
-  if (t < 12) return [1395, lerp(560, 360, ease.outQuad(prog(t, 0, 7)))];
+  if (t < 12) return [1290, lerp(520, 420, ease.outQuad(prog(t, 0, 6)))];
   return [2770, 505];
 }
 

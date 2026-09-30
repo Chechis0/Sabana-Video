@@ -6,7 +6,7 @@ import { clamp, lerp, ease, prog, spring, noise1, hrand, mix, mulberry32 } from 
 import { pchip } from './core/interp.js';
 import { T, W, H } from './timeline.js';
 import * as LY from './world/layout.js';
-import { drawFrailejon, drawTree, drawStump, drawHouse, drawChurch, drawBagSeedling, drawSapling, drawUnderstory } from './world/props.js';
+import { treeBox, drawFrailejon, drawTree, drawStump, drawHouse, drawChurch, drawBagSeedling, drawSapling, drawUnderstory } from './world/props.js';
 import { drawDrop, drawBear, drawHummingbird, drawPerson, drawBird, drawButterfly, drawHeart } from './world/characters.js';
 import { drawSky, drawLand, drawForestFloor, drawGroundDetails, drawRivers, frontS } from './world/ground.js';
 import { handText } from './text.js';
@@ -55,7 +55,7 @@ export function dropState(t) {
   if (t < T.condense[0]) return null;
   if (t < T.fall) {
     const g = prog(t, T.condense[0], T.condense[1]);
-    const s = 0.92 * ease.outCubic(g) + 0.05 * spring(t - T.condense[1], 2.2, 4) * (t > T.condense[1] ? 1 : 0);
+    const s = 0.4 + 0.52 * ease.outCubic(g) + 0.05 * spring(t - T.condense[1], 2.2, 4) * (t > T.condense[1] ? 1 : 0);
     const wob = 0.08 * Math.sin(t * 11) * (1 - g);
     let sx = 1 + wob, sy = 1 - wob;
     let eyes = t < T.eyesOpen ? 0 : clamp((t - T.eyesOpen) / 0.12);
@@ -66,7 +66,7 @@ export function dropState(t) {
     sy *= 1 - 0.14 * Math.sin(ant * Math.PI);
     const mood = t < T.eyesOpen + 0.5 ? 'neutral' : t < T.lookAround[1] ? 'happy' : 'o';
     const S = Math.max(0.001, s);
-    return { x: B.x, y: B.y + 54 * S * sy, s: S, sx, sy, eyes, look, mood, shadow: false, alpha: clamp(g * 3) };
+    return { x: B.x, y: B.y + 54 * S * sy, s: S, sx, sy, eyes, look, mood, shadow: false, alpha: 1 };
   }
   if (t < T.land) {
     const u = prog(t, T.fall, T.land);
@@ -188,33 +188,34 @@ const Z1 = 0.33, C1 = [1520, 2560];
 function buildCamera() {
   const keys = [];
   const K = (t, x, y, z) => keys.push([t, x, y, Math.log(z)]);
-  K(0, 1178, 640, 2.15);
-  K(2.7, 1190, 690, 2.9);
-  K(3.95, 1192, 694, 2.95);
-  K(4.6, 1192, 790, 2.7);
-  K(5.5, 1186, 905, 2.55);
-  const zf = pchip([6.2, 8, 10, 11.6], [2.6, 2.45, 2.4, 2.1]);
-  for (let t = 6.3; t <= 11.61; t += 0.6) {
+  K(0, 1214, 676, 5.4);
+  K(1.3, 1210, 678, 4.7);
+  K(2.9, 1196, 690, 3.0);
+  K(3.35, 1195, 700, 2.9);
+  K(3.95, 1192, 792, 2.7);
+  K(4.9, 1186, 905, 2.55);
+  const zf = pchip([5.7, 8, 10, 11.6], [2.55, 2.45, 2.4, 2.1]);
+  for (let t = 5.8; t <= 11.61; t += 0.6) {
     const d = dropState(t);
     K(t, lerp(d.x, 1210, 0.3) + 14, d.y + 110, zf(t));
   }
   const st = LY.L1.at(LY.sStuck);
-  K(12.8, 1205, 1712, 1.42);
-  K(13.8, 1196, 1792, 1.2);
-  K(14.8, 1198, 1790, 1.26);
+  K(12.8, 1180, 1715, 1.6);
+  K(13.8, 1150, 1810, 1.45);
+  K(14.8, 1160, 1815, 1.5);
   K(15.7, st.x + 8, st.y - 30, 1.8);
-  K(16.3, st.x + 18, st.y - 42, 2.6);
-  K(16.95, st.x + 18, st.y - 42, 2.68);
+  K(16.3, st.x + 90, st.y - 20, 2.6);
+  K(16.95, st.x + 90, st.y - 20, 2.68);
   K(18.2, 1200, 1702, 1.75);
   K(19.5, 1205, 1732, 1.8);
   K(21.5, 1200, 1822, 1.8);
   K(23.4, 1196, 1918, 1.72);
-  K(24.4, 1214, 1772, 2.15);
-  K(25.4, 1218, 1748, 2.45);
-  K(26.3, 1205, 1852, 2.0);
+  K(24.4, 1130, 1660, 2.05);
+  K(25.4, 1135, 1675, 2.12);
+  K(26.3, 1225, 1935, 2.0);
   K(27.4, 1182, 1998, 1.8);
-  K(28.3, 1205, 1862, 1.55);
-  K(30.2, 1262, 1880, 1.95);
+  K(28.3, 1130, 1880, 1.5);
+  K(30.2, 1300, 2020, 1.85);
   const zw = pchip([30.6, 31.1, 31.7, 32.05], [1.6, 1.0, 1.1, 1.9]);
   for (let t = 30.85; t <= 32.0; t += 0.25) {
     const d = dropState(t);
@@ -296,18 +297,18 @@ export function cubState(t) {
 export function momState(t) {
   const Bp = PLACES.bearB, M = PLACES.meet;
   const st = { s: 1.2, seed: 71, dir: -1, walk: 0, moving: 0, headDip: 0, sit: 0, eyes: blinkAt(t, 0.4, 3.7), headTilt: -0.12 };
-  const off = [Bp[0] + 330, Bp[1] + 60]; // sale de cuadro mientras la comunidad siembra
-  if (t < 16.4) {
+  const off = [Bp[0] + 330, Bp[1] + 320]; // sale de cuadro mientras la comunidad siembra
+  if (t < 15.2) {
     const px = Math.sin(t * 0.9) * 26;
     const v = Math.cos(t * 0.9);
     return { ...st, x: Bp[0] + px, y: Bp[1], dir: v > 0.25 ? 1 : -1, walk: t * 7, moving: Math.abs(v) > 0.25 ? 0.8 : 0 };
   }
-  const x16 = Bp[0] + Math.sin(16.4 * 0.9) * 26;
-  if (t < 18.4) {
-    const u = ease.inOut(prog(t, 16.4, 18.4));
+  const x16 = Bp[0] + Math.sin(15.2 * 0.9) * 26;
+  if (t < 16.2) {
+    const u = ease.inOut(prog(t, 15.2, 16.2));
     return { ...st, x: lerp(x16, off[0], u), y: lerp(Bp[1], off[1], u), dir: 1, walk: t * 7, moving: 1 };
   }
-  const target = [M[0] + 172, M[1] + 8];
+  const target = [M[0] + 172, M[1] + 6];
   if (t < 26.6) return { ...st, x: off[0], y: off[1], dir: -1 };
   if (t < T.bearsWalk[0]) {
     const u = ease.inOut(prog(t, 26.6, T.bearsWalk[0]));
@@ -342,11 +343,11 @@ function birdState(t) {
 
 // ================================================================ sembradores
 const CREW = [
-  { ruana: '#3f7f9a', hat: '#e3cf9a', skin: '#a8714b', s: 1.15, seed: 11, from: [700, 1700], enter: 17.0, hold: 'shovel', watch: [1040, 1745] },
-  { ruana: '#d9a53a', hat: '#4a3a30', skin: '#8d5a3b', s: 1.12, seed: 12, from: [1720, 1760], enter: 17.2, hold: 'shovel', watch: [1395, 1790] },
-  { ruana: '#8a4a6a', hat: '#e3cf9a', skin: '#c08a60', s: 1.1, seed: 13, from: [690, 1990], enter: 17.35, hold: 'seedling', watch: [1045, 1975] },
-  { ruana: '#5b5a98', hat: '#4a3a30', skin: '#9b6444', s: 1.17, seed: 14, from: [1720, 2020], enter: 17.1, hold: 'shovel', watch: [1500, 2015] },
-  { ruana: '#e0603a', hat: null, braids: true, skin: '#b07a52', s: 0.85, seed: 15, kid: true, hold: 'seedling', watch: [1120, 1840] },
+  { ruana: '#3f7f9a', hat: '#e3cf9a', skin: '#a8714b', s: 1.15, seed: 11, from: [700, 1700], enter: 17.0, hold: 'shovel', watch: [950, 1690] },
+  { ruana: '#d9a53a', hat: '#4a3a30', skin: '#8d5a3b', s: 1.12, seed: 12, from: [1720, 1760], enter: 17.2, hold: 'shovel', watch: [1445, 1760] },
+  { ruana: '#8a4a6a', hat: '#e3cf9a', skin: '#c08a60', s: 1.1, seed: 13, from: [690, 1990], enter: 17.35, hold: 'seedling', watch: [930, 1985] },
+  { ruana: '#5b5a98', hat: '#4a3a30', skin: '#9b6444', s: 1.17, seed: 14, from: [1720, 2020], enter: 17.1, hold: 'shovel', watch: [1440, 1880] },
+  { ruana: '#e0603a', hat: null, braids: true, skin: '#b07a52', s: 0.85, seed: 15, kid: true, hold: 'seedling', watch: [955, 1780] },
 ];
 const crewPlans = CREW.map((c, k) => {
   const mine = plantings.filter((p) => p.i % 5 === k);
@@ -560,6 +561,50 @@ function drawFog(D, t) {
   ctx.globalAlpha = 1;
 }
 
+// ================================================================ oclusión (lógica de profundidad)
+// Se recorre toda la película: si la copa o el tronco de un árbol que está DELANTE de un personaje
+// (su base más abajo) lo taparía, ese árbol no se planta en el paisaje. Los árboles sembrados por la
+// comunidad no se pueden quitar: sus conflictos se informan para ajustar la coreografía.
+function actorBoxes(t) {
+  const out = [];
+  const bear = (b, name) => b && out.push({ name, x0: b.x - 105 * b.s, x1: b.x + 105 * b.s, y0: b.y - 125 * b.s, y: b.y });
+  bear(cubState(t), 'osezno'); bear(momState(t), 'osa');
+  for (const plan of crewPlans) {
+    const p = personState(plan, t);
+    if (p) out.push({ name: 'persona' + plan.c.seed, x0: p.x - 30 * p.s, x1: p.x + 30 * p.s, y0: p.y - 150 * p.s, y: p.y });
+  }
+  const gk = gardenKidState(t);
+  out.push({ name: 'niño', x0: gk.x - 30 * gk.s, x1: gk.x + 30 * gk.s, y0: gk.y - 150 * gk.s, y: gk.y });
+  const d = dropState(t);
+  if (d && t > T.poolSplash) { const h = 64 * (d.s || 1); out.push({ name: 'gota', x0: d.x - h * 0.5, x1: d.x + h * 0.5, y0: d.y - h, y: d.y }); }
+  return out;
+}
+function covers(tr, size, box) {
+  if (tr.y <= box.y + 1) return false; // el árbol está detrás: el personaje se pinta encima, correcto
+  const b = treeBox(tr.kind, size);
+  const crown = !(tr.x + b.rx < box.x0 || tr.x - b.rx > box.x1 || tr.y + b.crownBottom < box.y0 || tr.y + b.top > box.y);
+  const trunk = !(tr.x + b.trunkW < box.x0 || tr.x - b.trunkW > box.x1 || tr.y < box.y0 || tr.y - b.th > box.y);
+  return crown || trunk;
+}
+export const occlusionReport = [];
+{
+  let removed = 0;
+  for (let t = 0; t <= 40; t += 0.1) {
+    for (const box of actorBoxes(t)) {
+      for (const tr of LY.trees) {
+        if (tr.hidden) continue;
+        if (tr.t0 >= 0 && t < tr.t0 + tr.dur * 0.3) continue;
+        if (covers(tr, tr.size, box)) { tr.hidden = true; removed++; }
+      }
+      for (const pl of plantings) {
+        if (t < pl.t + 1.5) continue;
+        if (covers(pl, 1.0, box)) occlusionReport.push(`${t.toFixed(1)}s siembra#${pl.i} tapa a ${box.name}`);
+      }
+    }
+  }
+  occlusionReport.unshift(`árboles retirados por tapar personajes: ${removed}`);
+}
+
 // ================================================================ cuadro
 let assets = null;
 export function initAssets() {
@@ -620,26 +665,35 @@ export function drawFrame(D, t, frame) {
   for (const h of LY.houses) if (inView(h.x, h.y)) items.push([h.y, () => drawHouse(D, h, t)]);
   if (inView(LY.church.x, LY.church.y)) items.push([LY.church.y, () => drawChurch(D, LY.church, t)]);
   items.push([PLACES.sprout[1] + 1, () => drawSprout(D, t)]);
-  items.sort((a, b) => a[0] - b[0]);
-  for (const [, fn] of items) fn();
-  // actores: siempre legibles, por encima del paisaje (ordenados entre sí)
-  D.slow = false;
-  const actors = [];
+  // personajes: se ordenan junto con el paisaje por su pie (y). Nadie queda "encima" de un árbol que está delante.
+  const actorFns = [];
+  const act = (y, fn) => actorFns.push([y, fn]);
   const cub = cubState(t), mom = momState(t);
-  if (cub) actors.push([cub.y, () => drawBear(D, cub, t)]);
-  if (mom) actors.push([mom.y, () => drawBear(D, mom, t)]);
+  if (cub) act(cub.y, () => drawBear(D, cub, t));
+  if (mom) act(mom.y, () => drawBear(D, mom, t));
   for (const plan of crewPlans) {
     const p = personState(plan, t);
-    if (p && inView(p.x, p.y)) actors.push([p.y + 1, () => drawPerson(D, p, t)]);
+    if (p && inView(p.x, p.y)) act(p.y + 1, () => drawPerson(D, p, t));
   }
   const gk = gardenKidState(t);
-  if (inView(gk.x, gk.y)) actors.push([gk.y, () => drawPerson(D, gk, t)]);
+  if (inView(gk.x, gk.y)) act(gk.y, () => drawPerson(D, gk, t));
   const drop = dropState(t);
-  if (drop) actors.push([drop.y + 2, () => drawDrop(D, drop, t)]);
+  if (drop) {
+    // estela de la gota en el viaje veloz (en vez de líneas de velocidad)
+    if (t > T.whip[0] + 0.1 && t < T.whip[1] - 0.05) {
+      for (let k = 3; k >= 1; k--) {
+        const g = dropState(t - k * 0.035);
+        if (g) act(drop.y + 1.5, () => drawDrop(D, { ...g, alpha: 0.18 * (4 - k), eyes: 0, mood: 'neutral' }, t));
+      }
+    }
+    act(t < T.land ? PLACES.hero[1] + 0.5 : drop.y + 2, () => drawDrop(D, drop, t));
+  }
   const dew = dewState(t);
-  if (dew) actors.push([PLACES.sprout[1] + 5, () => drawDrop(D, dew, t)]);
-  actors.sort((a, b) => a[0] - b[0]);
-  for (const [, fn] of actors) fn();
+  if (dew) act(PLACES.sprout[1] + 5, () => drawDrop(D, dew, t));
+  const all = items.map(([y, fn]) => [y, 0, fn]).concat(actorFns.map(([y, fn]) => [y, 1, fn]));
+  all.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  for (const [, isActor, fn] of all) { D.slow = !isActor; fn(); }
+  D.slow = false;
 
   // ---- efectos en el mundo
   drawFog(D, t);
@@ -704,7 +758,6 @@ export function drawFrame(D, t, frame) {
 
   // ---- efectos de pantalla
   drawRain(D, t);
-  speedLines(D, t);
   grade(D, t);
   ctx.globalCompositeOperation = 'multiply';
   ctx.drawImage(A.tooth, 0, 0);
@@ -762,11 +815,12 @@ function drawTitles(D, t) {
     ctx.fillRect(0, H - 330, W, 330);
   }
   const ink = '#2f4a3a';
-  handText(D, 'Conectar el bosque es sembrar agua.', W / 2, 104, 68, ink, prog(t, T.title1, T.title1 + 0.8), { seed: 3, halo: 'rgba(250,246,236,0.85)' });
-  handText(D, 'Sembrar agua es sembrar futuro.', W / 2, 186, 68, '#2f6f9a', prog(t, T.title2, T.title2 + 0.8), { seed: 4, halo: 'rgba(250,246,236,0.85)' });
-  handText(D, 'Árboles para mi País', W / 2, H - 150, 70, '#3d6a3a', prog(t, T.credits, T.credits + 0.7), { seed: 6 });
-  handText(D, '+261.000 árboles nativos · 20 municipios de Cundinamarca', W / 2, H - 92, 38, '#5a4a3a', prog(t, T.credits + 0.25, T.credits + 0.9), { seed: 7, font: 'PatrickHand' });
-  handText(D, 'Fundación Parque Jaime Duque', W / 2, H - 46, 36, '#5a4a3a', prog(t, T.credits + 0.45, T.credits + 1.05), { seed: 8, font: 'PatrickHand' });
+  const o = { mode: 'words', maxW: 960 };
+  handText(D, 'Conectar el bosque es sembrar agua.', W / 2, 112, 80, ink, prog(t, T.title1, T.title1 + 0.45), { ...o, seed: 3, halo: 'rgba(250,246,236,0.9)' });
+  handText(D, 'Sembrar agua es sembrar futuro.', W / 2, 206, 80, '#2f6f9a', prog(t, T.title2, T.title2 + 0.45), { ...o, seed: 4, halo: 'rgba(250,246,236,0.9)' });
+  handText(D, 'Árboles para mi País', W / 2, H - 150, 78, '#3d6a3a', prog(t, T.credits, T.credits + 0.35), { ...o, seed: 6 });
+  handText(D, '+261.000 árboles · 20 municipios de Cundinamarca', W / 2, H - 90, 42, '#4a3d30', prog(t, T.credits + 0.2, T.credits + 0.55), { ...o, seed: 7, font: 'PatrickHand' });
+  handText(D, 'Fundación Parque Jaime Duque', W / 2, H - 42, 40, '#4a3d30', prog(t, T.credits + 0.3, T.credits + 0.65), { ...o, seed: 8, font: 'PatrickHand' });
 }
 
 export function makeRenderer() {
