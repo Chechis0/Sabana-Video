@@ -1,0 +1,33 @@
+// Hoja de personajes: node film/charsheet.js salida.png
+import fs from 'fs';
+import { createCanvas } from '@napi-rs/canvas';
+import { Pencil } from './core/pencil.js';
+import { makePaper, makeTooth } from './core/paper.js';
+import { drawBear } from './world/bears.js';
+import { drawPerson, drawHummingbird } from './world/people.js';
+import { drawDrop } from './world/drop.js';
+const W = 1080, H = 1920;
+const c = createCanvas(W, H), g = c.getContext('2d');
+const D = new Pencil(g, W, H);
+const paper = makePaper(W, H), tooth = makeTooth(W, H);
+const draw = () => {
+  D.setFrame(1, 24, { x: W / 2, y: H / 2, z: 1 }, 2);
+  D.ctx = g; D.mainCtx = null;
+  g.drawImage(paper, 0, 0);
+  drawBear(D, { x: 200, y: 260, s: 1.2, dir: 1, walk: 1.2, moving: 1, seed: 71 }, 1);
+  drawBear(D, { x: 560, y: 260, s: 1.2, dir: 1, headDip: 1, seed: 71 }, 1);
+  drawBear(D, { x: 880, y: 260, s: 0.7, dir: 1, sit: 1, cub: true, seed: 61, mood: 'happy' }, 1);
+  drawBear(D, { x: 250, y: 520, s: 0.75, dir: 1, walk: 2.3, run: 1, cub: true, seed: 61 }, 1);
+  drawBear(D, { x: 600, y: 520, s: 1.2, dir: -1, nuzzle: 1, seed: 71, mood: 'happy', eyes: 0 }, 1);
+  const base = { ruana: '#3f7f9a', hat: 'straw', skin: '#a8714b', seed: 11 };
+  const poses = ['stand', 'walk', 'dig', 'kneel', 'cheer', 'wave'];
+  poses.forEach((pose, i) => drawPerson(D, { ...base, x: 90 + i * 170, y: 900, s: 1.35, dir: 1, pose, ph: 1.1, hold: pose === 'dig' ? 'shovel' : pose === 'kneel' ? 'seedling' : null, ruana: ['#3f7f9a', '#d9a53a', '#8a4a6a', '#5b5a98', '#e0603a', '#3f8a6a'][i], hat: i % 2 ? 'felt' : 'straw' }, 1));
+  drawPerson(D, { x: 300, y: 1780, s: 5.2, dir: 1, pose: 'hold', hold: 'seedling', kid: true, braids: true, ruana: '#e0603a', skin: '#b07a52', seed: 15, mood: 'smile' }, 1);
+  drawPerson(D, { x: 800, y: 1250, s: 1.8, dir: -1, pose: 'kneel', hold: 'seedling', kid: true, braids: true, ruana: '#e0603a', skin: '#b07a52', seed: 15 }, 1);
+  drawHummingbird(D, { x: 800, y: 1450, s: 3, dir: 1, tilt: 0.05 }, 1);
+  const moods = ['neutral', 'joy', 'sad', 'o', 'worried', 'determined'];
+  moods.forEach((m, i) => drawDrop(D, { x: 620 + (i % 3) * 150, y: 1650 + Math.floor(i / 3) * 190, s: 2.6, mood: m, eyes: 1, look: [0.2, 0] }, 1));
+  g.globalCompositeOperation = 'multiply'; g.drawImage(tooth, 0, 0); g.globalCompositeOperation = 'source-over';
+};
+draw(); await D.flush(); draw();
+fs.writeFileSync(process.argv[2], await c.encode('png'));
