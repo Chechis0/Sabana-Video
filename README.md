@@ -7,6 +7,7 @@ Jaime Duque: mostrar por qué reconectar los ecosistemas y proteger las fuentes 
 
 **Video final:** [`out/v4/sembrar_agua_41s.mp4`](out/v4/sembrar_agua_41s.mp4) (H.264 + AAC, −14 LUFS)
 **Banda sonora:** [`out/v4/banda_sonora.wav`](out/v4/banda_sonora.wav)
+**Creado por:** Sergio Pardo Osorio
 
 <p align="center"><img src="out/v4/poster.png" width="360" alt="Fotograma final: la cuenca vista desde lo alto es un árbol"></p>
 

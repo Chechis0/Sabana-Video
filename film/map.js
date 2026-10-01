@@ -263,15 +263,16 @@ function drawTitles(D, t) {
   }
   const kb = ease.inOut(prog(t, T.credits - 0.4, T.credits + 0.3));
   if (kb > 0) {
-    const g = ctx.createLinearGradient(0, H - 360, 0, H - 200);
+    const g = ctx.createLinearGradient(0, H - 420, 0, H - 250);
     g.addColorStop(0, 'rgba(248,242,228,0)');
     g.addColorStop(1, `rgba(248,242,228,${0.94 * kb})`);
-    ctx.fillStyle = g; ctx.fillRect(0, H - 360, W, 360);
+    ctx.fillStyle = g; ctx.fillRect(0, H - 420, W, 420);
   }
   const o = { mode: 'words', maxW: 980 };
   handText(D, 'Conectar el bosque es sembrar agua.', W / 2, 128, 82, '#2f4a3a', prog(t, T.title1, T.title1 + 0.5), { ...o, seed: 3, halo: 'rgba(250,246,236,0.9)' });
   handText(D, 'Sembrar agua es sembrar futuro.', W / 2, 228, 82, '#2f6f9a', prog(t, T.title2, T.title2 + 0.5), { ...o, seed: 4, halo: 'rgba(250,246,236,0.9)' });
-  handText(D, 'Árboles para mi País', W / 2, H - 158, 84, '#3d6a3a', prog(t, T.credits, T.credits + 0.4), { ...o, seed: 6 });
-  handText(D, '+261.000 árboles · 20 municipios de Cundinamarca', W / 2, H - 96, 44, '#4a3d30', prog(t, T.credits + 0.25, T.credits + 0.6), { ...o, seed: 7, font: 'PatrickHand' });
-  handText(D, 'Fundación Parque Jaime Duque', W / 2, H - 44, 42, '#4a3d30', prog(t, T.credits + 0.35, T.credits + 0.7), { ...o, seed: 8, font: 'PatrickHand' });
+  handText(D, 'Árboles para mi País', W / 2, H - 206, 84, '#3d6a3a', prog(t, T.credits, T.credits + 0.4), { ...o, seed: 6 });
+  handText(D, '+261.000 árboles · 20 municipios de Cundinamarca', W / 2, H - 146, 44, '#4a3d30', prog(t, T.credits + 0.25, T.credits + 0.6), { ...o, seed: 7, font: 'PatrickHand' });
+  handText(D, 'Fundación Parque Jaime Duque', W / 2, H - 96, 42, '#4a3d30', prog(t, T.credits + 0.35, T.credits + 0.7), { ...o, seed: 8, font: 'PatrickHand' });
+  handText(D, 'Creado por: Sergio Pardo Osorio', W / 2, H - 38, 44, '#2f4a3a', prog(t, T.credits + 0.6, T.credits + 1.0), { ...o, seed: 9 });
 }
