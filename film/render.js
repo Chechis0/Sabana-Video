@@ -11,7 +11,8 @@ import { FPS, DURATION, W, H } from './timeline.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(here, '..');
-const SEG_DIR = path.join(root, 'frames', process.env.SEG_NAME || 'film');
+const { SEG_NAME } = await import('./style.js');
+const SEG_DIR = path.join(root, 'frames', SEG_NAME);
 const SEG = 2;
 
 export function ffmpegPath() {
@@ -45,7 +46,7 @@ async function worker() {
         const t = f / FPS;
         drawFrame(D, canvas, t, f);
         if (D.pending.length) { await D.flush(); drawFrame(D, canvas, t, f); }
-        buf = canvas.data();
+        buf = (D.out || canvas).data();
       }
       if (!enc.stdin.write(buf)) await new Promise((r) => enc.stdin.once('drain', r));
       // la memoria nativa (búferes, trazados) sólo se libera cuando el bucle de eventos respira

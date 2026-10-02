@@ -129,7 +129,9 @@ export function drawTree(D, tr, P, t, o = {}) {
       }
       // musgo en el tronco (bosque de niebla)
       if (o.moss) {
-        D.shadeIn(tp, ellipsePts(-tw * 0.4, -G.th * 0.35, tw * 0.9, G.th * 0.2, 10, 0, 0.3, tr.seed), '#6d8f3c', { seed: tr.seed + 5, alpha: 0.9, angle: -0.6 });
+        // en los estilos planos el musgo es una mancha festoneada más pequeña (no un óvalo)
+        const mp = D.flat ? clumpPts(-tw * 0.35, -G.th * 0.32, tw * 0.6, G.th * 0.11, tr.seed, 6, 20, 0.3) : ellipsePts(-tw * 0.4, -G.th * 0.35, tw * 0.9, G.th * 0.2, 10, 0, 0.3, tr.seed);
+        D.shadeIn(tp, mp, '#6d8f3c', { seed: tr.seed + 5, alpha: 0.9, angle: -0.6 });
       }
     }
   }

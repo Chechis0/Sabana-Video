@@ -591,3 +591,6 @@ export function riser(dur, f0 = 300, f1 = 5000, seed = 13) {
   for (let i = 0; i < n; i++) b[i] *= Math.pow(i / n, 2) * 1.4;
   return b;
 }
+
+// utilidades para los instrumentos de las otras versiones (voices.js)
+export { env, onePoleLP, onePoleHP, svfBand };

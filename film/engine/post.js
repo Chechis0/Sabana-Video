@@ -6,7 +6,7 @@ import { clamp, hexToRgb } from '../core/math.js';
 
 const SW = 270, SH = 480; // cuarto de resolución
 function mk(w, h) { const c = createCanvas(w, h); c.g = c.getContext('2d'); return c; }
-let A = null, B = null, C = null, FULL = null;
+let A = null, B = null, C = null, FULL = null, SMALL = null;
 function bufs() {
   if (!A) { A = mk(SW, SH); B = mk(SW, SH); C = mk(SW, SH); FULL = mk(W, H); }
 }
@@ -91,14 +91,17 @@ export function grade(canvas, g = {}) {
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (g.filter && g.filter !== 'none') {
-    FULL.g.setTransform(1, 0, 0, 1, 0, 0);
-    FULL.g.globalCompositeOperation = 'copy';
-    FULL.g.filter = g.filter;
-    FULL.g.drawImage(canvas, 0, 0);
-    FULL.g.filter = 'none';
-    FULL.g.globalCompositeOperation = 'source-over';
+    // búfer del tamaño real del lienzo (en pixel art es pequeño)
+    let F = FULL;
+    if (canvas.width !== W) { if (!SMALL || SMALL.width !== canvas.width) SMALL = mk(canvas.width, canvas.height); F = SMALL; }
+    F.g.setTransform(1, 0, 0, 1, 0, 0);
+    F.g.globalCompositeOperation = 'copy';
+    F.g.filter = g.filter;
+    F.g.drawImage(canvas, 0, 0);
+    F.g.filter = 'none';
+    F.g.globalCompositeOperation = 'source-over';
     ctx.globalCompositeOperation = 'copy';
-    ctx.drawImage(FULL, 0, 0);
+    ctx.drawImage(F, 0, 0, W, H);
   }
   for (const [col, a, op] of g.layers || []) {
     if (a <= 0.003) continue;

@@ -9,6 +9,13 @@ import { godRays, bloom, grade, paperPass, glow, gradientLayer } from './engine/
 import { handText } from './text.js';
 import { sparkle } from './effects.js';
 import { T } from './story.js';
+import { PENCIL, PIXEL, CARTOON, PAPER } from './style.js';
+import { cartoonPost } from './styles/cartoon.js';
+import { paperPost } from './styles/paper.js';
+import { pixelTitles, cartoonTitles, paperTitles } from './styles/titles.js';
+import { farewell } from './styles/farewell.js';
+import { iris } from './styles/cartoonfx.js';
+import { emote } from './styles/pixelfx.js';
 
 // ------------------------------------------------------------------ geometría del árbol (coordenadas de mapa = pantalla base)
 const CX = 540;
@@ -149,11 +156,12 @@ export function drawMap(D, canvas, t, frame) {
   ctx.globalCompositeOperation = 'source-over';
   ctx.globalAlpha = 1;
   ctx.filter = 'none';
-  ctx.drawImage(A.paper, 0, 0);
+  if (A.paper) ctx.drawImage(A.paper, 0, 0, W, H);
   // cámara: se aleja despacio y se asienta
   const u = ease.outCubic(prog(t, T.map, T.map + 2.6));
   const z = lerp(1.55, 1.0, u) * (1 + 0.012 * prog(t, T.map + 2.6, T.end));
-  const cy = lerp(1300, H / 2, u);
+  // en pixel art el mapa baja un poco: los títulos ocupan más arriba
+  const cy = lerp(1300, H / 2 - (PENCIL ? 0 : 105), u);
   D.save();
   D.translate(W / 2, H / 2);
   D.scale(z);
@@ -245,12 +253,30 @@ export function drawMap(D, canvas, t, frame) {
   gradientLayer(canvas, [[0, 'rgba(255,214,150,0.9)'], [0.5, 'rgba(255,236,200,0.2)'], [1, 'rgba(255,200,150,0.5)']], 'soft-light', 0.55);
   glow(ctx, 120, 160, 900, '#ffd89a', 0.3);
   bloom(canvas, { strength: 0.22 });
-  grade(canvas, { filter: 'saturate(1.12) contrast(1.05)', layers: [['#ffb45a', 0.1, 'soft-light']] });
-  paperPass(canvas, A, { vignette: 0.5 });
+  const env = { grade: { sat: 1.12, con: 1.05, bri: 1, layers: [['#ffb45a', 0.1, 'soft-light']] }, vignette: 0.5, light: -1 };
+  if (PENCIL) {
+    grade(canvas, { filter: 'saturate(1.12) contrast(1.05)', layers: [['#ffb45a', 0.1, 'soft-light']] });
+    paperPass(canvas, A, { vignette: 0.5 });
+  } else if (PIXEL) grade(canvas, { filter: 'saturate(1.25) contrast(1.08)', layers: [['#ffb45a', 0.1, 'soft-light']] });
+  else if (CARTOON) cartoonPost(canvas, A, env);
+  else if (PAPER) paperPost(canvas, A, env);
   drawTitles(D, t);
+  // la gota se despide (versiones nuevas)
+  if (!PENCIL) {
+    D.save(); D.restore();
+    let fp = null;
+    const bye = () => { fp = farewell(D, t, PIXEL ? { t0: T.credits + 1.35, x: 985, y: H - 505, s: 1.8 } : { x: 975, y: H - 335, s: 2.0 }); };
+    // en pixel art la gota lleva su contorno de sprite
+    if (D.wrapItem) D.wrapItem({ o: { tag: 'drop' } }, bye); else bye();
+    if (fp && PIXEL) emote(ctx, fp[0] + 30, fp[1] - 40, '♥', Math.min(0.5, (t - T.credits - 1.6) / 1.2), { color: '#e2453a' });
+    if (fp && CARTOON) { const k = prog(t, 40.72, 41.0); if (k > 0) iris(ctx, fp[0], fp[1], lerp(1500, 0, ease.inCubic(k))); }
+  }
 }
 
 function drawTitles(D, t) {
+  if (PIXEL) return pixelTitles(D, t);
+  if (CARTOON) return cartoonTitles(D, t);
+  if (PAPER) return paperTitles(D, t);
   const ctx = D.ctx;
   if (t < T.title1 - 0.1) return;
   // bandas de papel para que el texto se lea

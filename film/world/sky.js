@@ -3,6 +3,7 @@ import { Path2D } from '@napi-rs/canvas';
 import { W, H } from '../timeline.js';
 import { clamp, lerp, mix, noise1, fbm2, mulberry32, hexToRgb, rgba, shade } from '../core/math.js';
 import { glow } from '../engine/post.js';
+import { PENCIL, PIXEL, PX } from '../style.js';
 
 export function drawSky(D, cam, env) {
   const ctx = D.ctx;
@@ -16,6 +17,7 @@ export function drawSky(D, cam, env) {
   ctx.fillStyle = gr;
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
+  if (!PENCIL) return;
   // trazo de lápiz sobre el degradado (dos pasadas, ángulos distintos)
   const top = new Path2D();
   top.rect(-20, -20, W + 40, Math.max(0, hy + 60));
@@ -81,6 +83,15 @@ export function drawStars(D, cam, env, t) {
   for (const st of STARS) {
     const x = st.x * W, y = st.y * (cam.lensY - 60);
     const tw = 0.6 + 0.4 * Math.sin(t * 7 + st.ph * 3);
+    if (PIXEL) {
+      // estrellas de un píxel; las grandes, una crucecita que titila
+      const px = Math.floor(x / PX) * PX, py = Math.floor(y / PX) * PX;
+      ctx.globalAlpha = Math.min(1, k * tw * (0.45 + st.s / 3));
+      ctx.fillStyle = '#fffbe8';
+      ctx.fillRect(px, py, PX, PX);
+      if (st.s > 2.2 && tw > 0.75) { ctx.globalAlpha *= 0.6; ctx.fillRect(px - PX, py, PX * 3, PX); ctx.fillRect(px, py - PX, PX, PX * 3); }
+      continue;
+    }
     ctx.globalAlpha = k * tw * (0.5 + st.s / 5);
     ctx.fillStyle = '#fffbe8';
     ctx.beginPath(); ctx.arc(x, y, st.s, 0, Math.PI * 2); ctx.fill();

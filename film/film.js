@@ -2,7 +2,7 @@
 import { W, H } from './timeline.js';
 import { clamp, lerp, ease, prog, spring, noise1, hrand, mulberry32, mix } from './core/math.js';
 import { ellipsePts } from './core/pencil.js';
-import { renderView, initAssets } from './render-view.js';
+import { renderView, initAssets, finishFrame } from './render-view.js';
 import { shotAt } from './cameras.js';
 import {
   T, X, envAt, dropState, cubState, momState, birdState, girlState, crewPlans, personState, plantedTrees,
@@ -18,6 +18,11 @@ import { drawShafts, drawMotes, drawFleck } from './engine/light.js';
 import { sparkle, dirtPuff, splash, steam, rain, rainSplashes, lightning } from './effects.js';
 import { glow } from './engine/post.js';
 import { drawMap } from './map.js';
+import { PIXEL, CARTOON, PAPER } from './style.js';
+import { emote, pixelRain, pixelSplashes } from './styles/pixelfx.js';
+import { iris, speedLines, impactStar, cartoonBolt, dustPuffs } from './styles/cartoonfx.js';
+import { paperRain } from './styles/paper.js';
+import { bookAt, pageBuffer, pageTurn, drawCover } from './styles/book.js';
 
 const PLANTED = plantedTrees();
 const HALF = STREAM_W / 2;
@@ -78,7 +83,10 @@ function addActors(stage, cam, env, t, shot) {
         const ring = ellipsePts(P[0], P[1] + 2 * P[2], rr, rr * 0.28, 20);
         D.stroke(ring.concat([ring[0]]), '#eefaff', 1.8, { seed: 7, alpha: 0.7 * (1 - k), abs: true });
       }
-      drawDrop(D, { ...d, x: P[0], y: P[1], s: P[2] * (d.s || 1), light: L, rim: (env.backlight ?? 0) * (d.rim ?? 0.6), glow: d.glow }, t);
+      // caricatura: el estirar y encoger se exagera
+      const ex = CARTOON ? 1.7 : 1;
+      const sx = 1 + ((d.sx ?? 1) - 1) * ex, sy = 1 + ((d.sy ?? 1) - 1) * ex;
+      drawDrop(D, { ...d, sx, sy, x: P[0], y: P[1], s: P[2] * (d.s || 1), light: L, rim: (env.backlight ?? 0) * (d.rim ?? 0.6), glow: d.glow }, t);
     }, { bias: -3, tag: 'drop' });
     // vapor mientras se evapora
     if (t > T.evap[0] && t < T.evap[1] + 0.5) {
@@ -113,6 +121,14 @@ function addActors(stage, cam, env, t, shot) {
       const Q = proj(X.spring + 40, bed(X.spring + 40) + 5, zAt(X.spring + 40, 0));
       if (Q) splash(D, Q[0], Q[1], Q[2] * 1.3, prog(t, T.slide[1], T.slide[1] + 0.6), 37);
     }, { bias: -5, tag: 'fx' });
+  }
+  // ---------------- caricatura: estrellas de impacto al caer y al tocar la semilla
+  if (CARTOON) {
+    const hits = [[T.land, { x: heroTip().x, z: heroTip().z, y: gy(X.hero + 90, 58) + 12 }, 120], [T.leap[1], seedSpot(), 110]];
+    for (const [th, Pw, r] of hits) {
+      if (t < th || t > th + 0.42) continue;
+      stage.addAt(Pw.x, Pw.z, (D) => { const P = proj(Pw.x, Pw.y, Pw.z); if (P) impactStar(D.ctx, P[0], P[1] - Math.min(40, 18 * P[2]), Math.min(230, r * P[2]), prog(t, th, th + 0.42), 7); }, { bias: -2.6, tag: 'fx', noBlur: true });
+    }
   }
   // ---------------- musgo del nacimiento (cojín de musgo al pie del frailejón)
   if (t < 7) {
@@ -297,11 +313,18 @@ function overlays(D, ctx, sun, t, cam, env, shot) {
   }
   const rk = env.rain || 0;
   if (rk > 0.01) {
-    rain(D, t, rk, cam);
-    rainSplashes(D, t, rk, cam.lensY + 200, H);
+    if (PIXEL) { pixelRain(ctx, t, rk, cam.x); pixelSplashes(ctx, t, rk, cam.lensY + 200, H); }
+    else if (PAPER) paperRain(ctx, t, rk);
+    else {
+      rain(D, t, rk, cam);
+      rainSplashes(D, t, rk, cam.lensY + 200, H);
+    }
   }
+  if (PIXEL) emotes(ctx, t, cam);
+  if (CARTOON) cartoonOverlays(ctx, t, cam);
   // relámpagos
-  let flash = lightning(D, t, T.thunder, W * 0.72) + lightning(D, t, T.thunder + 0.55, W * 0.3) * 0.7;
+  const bolt = CARTOON ? (tt, x) => cartoonBolt(ctx, t, tt, x) : (tt, x) => lightning(D, t, tt, x);
+  let flash = bolt(T.thunder, W * 0.72) + bolt(T.thunder + 0.55, W * 0.3) * 0.7;
   if (flash > 0) {
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = 'screen';
@@ -316,11 +339,105 @@ function overlays(D, ctx, sun, t, cam, env, shot) {
   }
 }
 
-export function drawFrame(D, canvas, t, frame) {
+// caricatura: líneas de velocidad, polvo de la carrera, iris de apertura
+function cartoonOverlays(ctx, t, cam) {
+  const at = (tt) => { const d = dropState(tt); if (!d) return null; const P = cam.project(d.x, d.y, d.z); return P ? [P[0], P[1] - 23 * P[2] * (d.s || 1), P[2] * (d.s || 1)] : null; };
+  for (const [a, b, seed] of [[T.fall, T.land, 3], [T.leap[0], T.leap[1], 9]]) {
+    if (t < a || t > b) continue;
+    const p1 = at(t), p0 = at(t - 0.035);
+    if (!p1 || !p0) continue;
+    const k = Math.sin(Math.PI * prog(t, a, b)) ** 0.5;
+    speedLines(ctx, p1[0], p1[1], p1[0] - p0[0], p1[1] - p0[1], 46 * p1[2], k, seed + Math.floor(t * 12));
+  }
+  // el osezno corre por el corredor
+  if (t > T.cubRun[0] && t < T.meet) {
+    const b = cubState(t);
+    if (b) {
+      const z = zAt(b.x, b.off);
+      const P = cam.project(b.x, Math.max(ground(b.x, z), bed(b.x) + 4), z);
+      if (P) { const s = P[2] * (b.size || 1); dustPuffs(ctx, P[0], P[1], s * 1.6, t, 5, b.dir || 1); speedLines(ctx, P[0], P[1] - 55 * s, b.dir || 1, 0, 120 * s, 0.7 * (1 - prog(t, T.meet - 0.2, T.meet)), 21 + Math.floor(t * 12)); }
+    }
+  }
+  // iris de apertura sobre la gota que nace
+  if (t < 0.62) {
+    const d = dropState(Math.max(t, T.condense[0] + 0.01));
+    const P = d ? cam.project(d.x, d.y + 23 * (d.s || 1), d.z) : null;
+    const cx = P ? P[0] : W / 2, cy = P ? P[1] : H / 2;
+    iris(ctx, cx, cy, lerp(0, 1700, ease.inOutCubic(prog(t, 0.04, 0.62))));
+  }
+}
+
+// globos de emoción (pixel art): sobre la cabeza de quien siente algo
+const EMOTES = [
+  { who: 'drop', glyph: '!', t0: 1.4, t1: 2.15 },
+  { who: 'drop', glyph: '…', t0: 12.85, t1: 13.8 },
+  { who: 'cub', glyph: '?', t0: 15.3, t1: 16.45 },
+  { who: 'drop', glyph: '!', t0: 16.62, t1: 17.35, color: '#e2453a' },
+  { who: 'cub', glyph: '♥', t0: 30.75, t1: 31.9, color: '#e2453a' },
+  { who: 'kid', glyph: '?', t0: 33.45, t1: 34.1 },
+];
+function emotes(ctx, t, cam) {
+  for (const e of EMOTES) {
+    if (t <= e.t0 || t >= e.t1) continue;
+    let P = null, ax = 0, ay = 0;
+    if (e.who === 'drop') {
+      const d = dropState(t);
+      if (!d) continue;
+      P = cam.project(d.x, d.y, d.z);
+      if (P) { const s = P[2] * (d.s || 1); ax = 15 * s; ay = -52 * s; }
+    } else if (e.who === 'cub') {
+      const b = cubState(t);
+      if (!b) continue;
+      const z = zAt(b.x, b.off);
+      P = cam.project(b.x, Math.max(ground(b.x, z), bed(b.x) + 4), z);
+      if (P) { const s = P[2] * (b.size || 1); ax = 50 * s * (b.dir || 1); ay = -118 * s; }
+    } else if (e.who === 'kid') {
+      const k = gardenKidState(t);
+      const z = zAt(k.x, k.off);
+      P = cam.project(k.x, ground(k.x, z), z);
+      if (P) { ax = 10 * P[2]; ay = -150 * P[2]; }
+    }
+    if (!P) continue;
+    const x = clamp(P[0] + ax, 60, W - 60), y = clamp(P[1] + ay, 110, H - 40);
+    emote(ctx, x, y, e.glyph, prog(t, e.t0, e.t1), { color: e.color, scale: P[2] * (e.who === 'drop' ? 1 : 2) > 2.2 ? 2 : 1 });
+  }
+}
+
+function renderAt(D, canvas, t, frame) {
   const shot = shotAt(t);
-  if (shot.name === 'mapa') return drawMap(D, canvas, t, frame);
+  if (shot.name === 'mapa') { drawMap(D, canvas, t, frame); return; }
   const cam = shot.cam(t);
+  D.camF = cam.f;
   const env = tuneEnv(envAt(t), t, shot);
   const S = { planted: PLANTED, dew: 1 - prog(t, T.condense[0], T.condense[1] * 0.85) };
   renderView(D, canvas, cam, env, t, frame, S, (stage) => addActors(stage, cam, env, t, shot), (D2, ctx, sun) => overlays(D2, ctx, sun, t, cam, env, shot));
+}
+
+export function drawFrame(D, canvas, t, frame) {
+  // papel: libro pop-up (portada que se da vuelta y pases de página)
+  const B = PAPER ? bookAt(t) : null;
+  if (B) {
+    const pg = pageBuffer();
+    const ctx = canvas.getContext('2d');
+    if (B.cover) {
+      if (B.u > 0) renderAt(D, canvas, t, frame);
+      D.setFrame(t, frame, { x: W / 2, y: H / 2, z: 1 }, 2);
+      D.env = { light: -1 };
+      drawCover(D, pg, t);
+      if (B.u <= 0) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'copy'; ctx.drawImage(pg, 0, 0, W, H); ctx.restore(); }
+      else pageTurn(ctx, pg, B.u);
+    } else {
+      renderAt(D, canvas, B.tOut, frame);
+      pg.g.setTransform(1, 0, 0, 1, 0, 0);
+      pg.g.globalCompositeOperation = 'copy';
+      pg.g.drawImage(canvas, 0, 0);
+      pg.g.globalCompositeOperation = 'source-over';
+      renderAt(D, canvas, B.tIn, frame);
+      pageTurn(ctx, pg, B.u);
+    }
+    finishFrame(D, canvas);
+    return;
+  }
+  renderAt(D, canvas, t, frame);
+  finishFrame(D, canvas);
 }

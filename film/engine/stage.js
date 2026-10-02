@@ -1,9 +1,9 @@
 // Escenario: reúne todo lo que se dibuja en un cuadro con su distancia a la cámara,
 // lo ordena de lejos a cerca (pintor) y lo pinta por tramos de desenfoque (profundidad
 // de campo). Cada objeto lejano se funde con la bruma del cielo.
-import { createCanvas } from '@napi-rs/canvas';
 import { W, H } from '../timeline.js';
 import { clamp } from '../core/math.js';
+import { scaledCanvas } from '../style.js';
 
 const LEVELS = [0, 1.6, 3, 5, 8, 12, 17, 24, 32];
 function quantBlur(b) {
@@ -15,7 +15,8 @@ function quantBlur(b) {
 
 let layer = null;
 function getLayer() {
-  if (!layer) { layer = createCanvas(W, H); layer.g = layer.getContext('2d'); }
+  // capa del mismo tamaño que el lienzo principal (pequeña en pixel art)
+  if (!layer) layer = scaledCanvas();
   return layer;
 }
 
@@ -85,8 +86,10 @@ export class Stage {
         if (process.env.DBG && it.o.tag === "slice") console.log("slice d", it.d.toFixed(0), "haze", JSON.stringify(D.haze));
         target.globalAlpha = 1;
         target.globalCompositeOperation = 'source-over';
-        if (PROF) { const t0 = performance.now(); it.fn(D, it.d); const k = it.o.tag || 'x'; PROF[k] = (PROF[k] || 0) + performance.now() - t0; PROF[k + '#'] = (PROF[k + '#'] || 0) + 1; }
-        else it.fn(D, it.d);
+        const draw = () => it.fn(D, it.d);
+        if (PROF) { const t0 = performance.now(); D.wrapItem ? D.wrapItem(it, draw) : draw(); const k = it.o.tag || 'x'; PROF[k] = (PROF[k] || 0) + performance.now() - t0; PROF[k + '#'] = (PROF[k + '#'] || 0) + 1; }
+        else if (D.wrapItem) D.wrapItem(it, draw);
+        else draw();
       }
       D.haze = null;
       if (run.b > 0) {
@@ -94,8 +97,8 @@ export class Stage {
         main.setTransform(1, 0, 0, 1, 0, 0);
         main.globalAlpha = 1;
         main.globalCompositeOperation = 'source-over';
-        main.filter = `blur(${run.b}px)`;
-        main.drawImage(L, 0, 0);
+        main.filter = `blur(${D.blurScale ? run.b * D.blurScale : run.b}px)`;
+        main.drawImage(L, 0, 0, W, H);
         main.filter = 'none';
         main.restore();
       }

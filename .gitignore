@@ -4,3 +4,5 @@ out/stills/
 *.log
 *.log.mbtree
 .DS_Store
+.scratch/
+out/**/*_preview.mp4
