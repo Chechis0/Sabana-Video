@@ -74,12 +74,13 @@ export function renderView(D, canvas, cam, env, t, frame, S = {}, extra = null, 
   if (PAPER && env.sun && env.sun.k > 0.05) { const [sx, sy] = cam.dir(env.sun.az, env.sun.el); paperSunRays(ctx, sx, sy, env.sun.r ?? 46, env.sun.k, t); }
   const sun = drawSun(D, cam, env);
   drawRainbow(D, cam, env);
-  if (!PENCIL) drawSkyClouds(D, cam, env, t, sun);
   T0 = ph('sky', T0);
   // mundo
   D.shadowK = env.longShadow || 0;
   D.shadowDir = (env.light ?? -1) < 0 ? 1 : -1;
   const stage = new Stage(cam, env, streamZ);
+  // nubes de día: muy lejos, así reciben el mismo desenfoque y la misma bruma que el fondo
+  if (!PENCIL) stage.add(60000, (D2) => drawSkyClouds(D2, cam, env, t, sun), { haze: 0.25, tag: 'skycloud' });
   addWorld(stage, cam, env, t, S);
   if (extra) extra(stage, D);
   T0 = ph('build', T0);
