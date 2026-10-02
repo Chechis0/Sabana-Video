@@ -1,9 +1,17 @@
 // Luz en el aire: haces de sol entre los árboles (a una profundidad dada, así lo cercano
 // los tapa), motas de polvo iluminadas y manchas de sol sobre el suelo.
+import { createCanvas } from '@napi-rs/canvas';
 import { W, H } from '../timeline.js';
 import { clamp, noise1, hrand, mulberry32, hexToRgb } from '../core/math.js';
 
 // haces: o = { col, k, angle (rad desde la vertical, + = hacia la derecha), n, seed, width, xs: [x mundo...] }
+// los haces se pintan en un lienzo a un cuarto de resolución, se desenfocan una sola vez y se
+// suman con "screen" (antes: un desenfoque de pantalla completa por haz)
+let SH = null;
+function shaftBuf() {
+  if (!SH) { SH = createCanvas(W / 4, H / 4); SH.g = SH.getContext('2d'); }
+  return SH;
+}
 export function drawShafts(D, cam, d, t, o) {
   const ctx = D.ctx;
   const k = o.k ?? 1;
@@ -12,11 +20,16 @@ export function drawShafts(D, cam, d, t, o) {
   const ang = o.angle ?? 0.35;
   const dx = Math.sin(ang), dy = Math.cos(ang);
   const s = cam.f / d;
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.globalCompositeOperation = 'screen';
+  const B = shaftBuf();
+  const bg = B.g;
+  bg.setTransform(1, 0, 0, 1, 0, 0);
+  bg.globalCompositeOperation = 'source-over';
+  bg.filter = 'none';
+  bg.clearRect(0, 0, B.width, B.height);
+  bg.setTransform(0.25, 0, 0, 0.25, 0, 0);
   const n = o.n ?? 7;
   const rnd = mulberry32(o.seed ?? 5);
+  let blurMax = 4;
   for (let i = 0; i < n; i++) {
     const wx = o.xs ? o.xs[i % o.xs.length] : cam.x + (rnd() - 0.5) * (W / s) * 1.6;
     // el haz pasa por la proyección de su ancla a media altura de la pantalla
@@ -32,21 +45,33 @@ export function drawShafts(D, cam, d, t, o) {
     const al = (o.alpha ?? 0.22) * k * fl * (0.5 + rnd() * 0.7);
     const x1 = x0 + dx * L, y1 = y0 + dy * L;
     const nx = dy, ny = -dx;
-    const gr = ctx.createLinearGradient(x0, y0, x1, y1);
+    const gr = bg.createLinearGradient(x0, y0, x1, y1);
     gr.addColorStop(0, `rgba(${r},${g},${b},${al})`);
     gr.addColorStop(0.55, `rgba(${r},${g},${b},${al * 0.6})`);
     gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
-    ctx.fillStyle = gr;
-    ctx.filter = `blur(${Math.max(4, w0 * 0.25).toFixed(1)}px)`;
-    ctx.beginPath();
-    ctx.moveTo(x0 + nx * w0 / 2, y0 + ny * w0 / 2);
-    ctx.lineTo(x1 + nx * w1 / 2, y1 + ny * w1 / 2);
-    ctx.lineTo(x1 - nx * w1 / 2, y1 - ny * w1 / 2);
-    ctx.lineTo(x0 - nx * w0 / 2, y0 - ny * w0 / 2);
-    ctx.closePath();
-    ctx.fill();
+    bg.fillStyle = gr;
+    blurMax = Math.max(blurMax, w0 * 0.25);
+    bg.beginPath();
+    bg.moveTo(x0 + nx * w0 / 2, y0 + ny * w0 / 2);
+    bg.lineTo(x1 + nx * w1 / 2, y1 + ny * w1 / 2);
+    bg.lineTo(x1 - nx * w1 / 2, y1 - ny * w1 / 2);
+    bg.lineTo(x0 - nx * w0 / 2, y0 - ny * w0 / 2);
+    bg.closePath();
+    bg.fill();
   }
-  ctx.filter = 'none';
+  // un solo desenfoque sobre el lienzo pequeño
+  bg.setTransform(1, 0, 0, 1, 0, 0);
+  bg.globalCompositeOperation = 'copy';
+  bg.filter = `blur(${(Math.min(blurMax, 40) / 4).toFixed(2)}px)`;
+  bg.drawImage(B, 0, 0);
+  bg.filter = 'none';
+  bg.globalCompositeOperation = 'source-over';
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'screen';
+  ctx.globalAlpha = 1;
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(B, 0, 0, W, H);
   ctx.restore();
 }
 

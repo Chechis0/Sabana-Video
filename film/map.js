@@ -263,13 +263,12 @@ export function drawMap(D, canvas, t, frame) {
   drawTitles(D, t);
   // la gota se despide (versiones nuevas)
   if (!PENCIL) {
-    D.save(); D.restore();
     let fp = null;
     const bye = () => { fp = farewell(D, t, PIXEL ? { t0: T.credits + 1.35, x: 985, y: H - 505, s: 1.8 } : { x: 975, y: H - 335, s: 2.0 }); };
     // en pixel art la gota lleva su contorno de sprite
     if (D.wrapItem) D.wrapItem({ o: { tag: 'drop' } }, bye); else bye();
     if (fp && PIXEL) emote(ctx, fp[0] + 30, fp[1] - 40, '♥', Math.min(0.5, (t - T.credits - 1.6) / 1.2), { color: '#e2453a' });
-    if (fp && CARTOON) { const k = prog(t, 40.72, 41.0); if (k > 0) iris(ctx, fp[0], fp[1], lerp(1500, 0, ease.inCubic(k))); }
+    if (fp && CARTOON) { const k = prog(t, 40.6, 40.95); if (k > 0) iris(ctx, fp[0], fp[1], lerp(1500, 0, ease.inCubic(k))); }
   }
 }
 

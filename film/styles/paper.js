@@ -110,16 +110,21 @@ export class PaperD extends FlatD {
     const hk = this.haze ? clamp(this.haze.k) : 0;
     const solid = !o.shading && o.base !== false && (o.edge ?? 5) > 0 && a > 0.5;
     const k = clamp(Math.pow(this.scaleNow(), 0.5), 0.3, 2.4) * (this.lift ?? 1);
-    if ((solid || o.shading) && o.shadow !== false) this._shadow(o.shading ? k * 0.45 : k, (o.shading ? 0.25 : 0.42) * (1 - hk * 0.8) * a);
+    // piezas diminutas o muy desenfocadas: sin sombra ni fibra (no se verían y cuestan)
+    const bb = path.bb || [0, 0, W, H];
+    const area = (bb[2] - bb[0]) * (bb[3] - bb[1]);
+    const blurred = (this.runBlur || 0) > 7;
+    const tiny = area < 260;
+    if ((solid || o.shading) && o.shadow !== false && !tiny && !(blurred && o.shading)) this._shadow(o.shading ? k * 0.45 : k, (o.shading ? 0.25 : 0.42) * (1 - hk * 0.8) * a);
     ctx.globalAlpha = a;
     ctx.fillStyle = c;
     ctx.fill(path);
     this._noShadow();
     // fibras de la cartulina
-    if (a > 0.35 && o.fiber !== false) {
+    if (a > 0.35 && o.fiber !== false && !tiny && !blurred) {
       const an = o.anchor || this.P(0, 0);
       ctx.globalAlpha = a * (0.75 - hk * 0.4);
-      this._tileFill(path, path.bb || [0, 0, W, H], { img: this.fiber, ox: an[0] + hrand(o.seed ?? 0, 1) * TILE, oy: an[1] + hrand(o.seed ?? 0, 2) * TILE });
+      this._tileFill(path, bb, { img: this.fiber, ox: an[0] + hrand(o.seed ?? 0, 1) * TILE, oy: an[1] + hrand(o.seed ?? 0, 2) * TILE });
     }
     // canto del corte: una línea clara que atrapa la luz
     if (solid && o.cut !== false) {

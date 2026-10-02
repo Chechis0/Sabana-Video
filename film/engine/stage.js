@@ -3,7 +3,8 @@
 // de campo). Cada objeto lejano se funde con la bruma del cielo.
 import { W, H } from '../timeline.js';
 import { clamp } from '../core/math.js';
-import { scaledCanvas } from '../style.js';
+import { createCanvas } from '@napi-rs/canvas';
+import { scaledCanvas, PX } from '../style.js';
 
 const LEVELS = [0, 1.6, 3, 5, 8, 12, 17, 24, 32];
 function quantBlur(b) {
@@ -12,6 +13,16 @@ function quantBlur(b) {
   for (const l of LEVELS) if (Math.abs(l - b) < Math.abs(best - b)) best = l;
   return best;
 }
+
+// búferes reducidos para desenfocar barato (un desenfoque grande a media o cuarta resolución
+// se ve igual y cuesta mucho menos)
+const smalls = new Map();
+function getSmall(ds) {
+  let c = smalls.get(ds);
+  if (!c) { c = createCanvas(Math.round(W / ds), Math.round(H / ds)); c.g = c.getContext('2d'); smalls.set(ds, c); }
+  return c;
+}
+export const BLURT = { n: 0, ms: 0 };
 
 let layer = null;
 function getLayer() {
@@ -80,6 +91,7 @@ export class Stage {
       const target = run.b > 0 ? L.g : main;
       if (run.b > 0) { L.g.setTransform(1, 0, 0, 1, 0, 0); L.g.clearRect(0, 0, W, H); }
       D.ctx = target;
+      D.runBlur = run.b * (D.blurScale || 1); // lo que se va a desenfocar no necesita detalle fino
       for (const it of run.items) {
         D.haze = it.o.noHaze ? null : { col: this.env.hazeCol, k: this.hazeK(it.d, it.o), dcol: this.env.nearCol || '#1d2a1c', dk: this.nearK(it.d, it.o) };
         D.depth = it.d;
@@ -87,22 +99,38 @@ export class Stage {
         target.globalAlpha = 1;
         target.globalCompositeOperation = 'source-over';
         const draw = () => it.fn(D, it.d);
-        if (PROF) { const t0 = performance.now(); D.wrapItem ? D.wrapItem(it, draw) : draw(); const k = it.o.tag || 'x'; PROF[k] = (PROF[k] || 0) + performance.now() - t0; PROF[k + '#'] = (PROF[k + '#'] || 0) + 1; }
+        if (PROF) { const t0 = performance.now(); D.wrapItem ? D.wrapItem(it, draw) : draw(); if (PROF.flush) target.getImageData(0, 0, 1, 1); const k = it.o.tag || 'x'; PROF[k] = (PROF[k] || 0) + performance.now() - t0; PROF[k + '#'] = (PROF[k + '#'] || 0) + 1; }
         else if (D.wrapItem) D.wrapItem(it, draw);
         else draw();
       }
       D.haze = null;
       if (run.b > 0) {
+        const tb = performance.now();
+        const b = D.blurScale ? run.b * D.blurScale : run.b;
         main.save();
         main.setTransform(1, 0, 0, 1, 0, 0);
         main.globalAlpha = 1;
         main.globalCompositeOperation = 'source-over';
-        main.filter = `blur(${D.blurScale ? run.b * D.blurScale : run.b}px)`;
-        main.drawImage(L, 0, 0, W, H);
-        main.filter = 'none';
+        if (PX === 1 && b >= 5 && !process.env.FULL_BLUR) {
+          const ds = b >= 14 ? 4 : 2;
+          const S = getSmall(ds);
+          S.g.setTransform(1, 0, 0, 1, 0, 0);
+          S.g.globalCompositeOperation = 'copy';
+          S.g.filter = `blur(${(b / ds).toFixed(2)}px)`;
+          S.g.drawImage(L, 0, 0, W / ds, H / ds);
+          S.g.filter = 'none';
+          main.imageSmoothingEnabled = true;
+          main.drawImage(S, 0, 0, W, H);
+        } else {
+          main.filter = `blur(${b}px)`;
+          main.drawImage(L, 0, 0, W, H);
+          main.filter = 'none';
+        }
         main.restore();
+        BLURT.n++; BLURT.ms += performance.now() - tb;
       }
     }
     D.ctx = main;
+    D.runBlur = 0;
   }
 }

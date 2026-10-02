@@ -1,17 +1,29 @@
-# Árboles para mi País — *Sembrar agua* (versión 4, 41 s)
+# Árboles para mi País — *Sembrar agua* (41 s, cuatro versiones)
 
 Filminuto animado de **41 segundos**, vertical **9:16 (1080 × 1920, 24 fps)**, **dibujado cuadro a cuadro con
-JavaScript** con textura de **lápiz de color sobre papel**, cámara 2.5D con perspectiva real, profundidad de campo,
-luz volumétrica y **música original sintetizada también en JavaScript**. Responde al reto de la Fundación Parque
-Jaime Duque: mostrar por qué reconectar los ecosistemas y proteger las fuentes de agua también es sembrar futuro.
+JavaScript**, con cámara 2.5D con perspectiva real, profundidad de campo, luz volumétrica y **música original
+sintetizada también en JavaScript**. Responde al reto de la Fundación Parque Jaime Duque: mostrar por qué
+reconectar los ecosistemas y proteger las fuentes de agua también es sembrar futuro.
 
-**Video final:** [`out/v4/sembrar_agua_41s.mp4`](out/v4/sembrar_agua_41s.mp4) (H.264 + AAC, −14 LUFS)
-**Banda sonora:** [`out/v4/banda_sonora.wav`](out/v4/banda_sonora.wav)
+La misma historia está contada en **cuatro lenguajes visuales**, cada uno con su propia música:
+
+| Versión | Video | Banda sonora |
+|---|---|---|
+| **Lápiz de color** (versión 4) | [`out/v4/sembrar_agua_41s.mp4`](out/v4/sembrar_agua_41s.mp4) | [`out/v4/banda_sonora.wav`](out/v4/banda_sonora.wav) |
+| **Pixel art** | [`out/pixel/sembrar_agua_pixel_41s.mp4`](out/pixel/sembrar_agua_pixel_41s.mp4) | [`out/pixel/banda_sonora.wav`](out/pixel/banda_sonora.wav) |
+| **Caricatura** | [`out/caricatura/sembrar_agua_caricatura_41s.mp4`](out/caricatura/sembrar_agua_caricatura_41s.mp4) | [`out/caricatura/banda_sonora.wav`](out/caricatura/banda_sonora.wav) |
+| **Papel recortado** (libro pop-up) | [`out/papel/sembrar_agua_papel_41s.mp4`](out/papel/sembrar_agua_papel_41s.mp4) | [`out/papel/banda_sonora.wav`](out/papel/banda_sonora.wav) |
+
 **Creado por:** Sergio Pardo Osorio
 
-<p align="center"><img src="out/v4/poster.png" width="360" alt="Fotograma final: la cuenca vista desde lo alto es un árbol"></p>
+<p align="center">
+<img src="out/v4/poster.png" width="200" alt="Lápiz de color: la cuenca vista desde lo alto es un árbol">
+<img src="out/pixel/poster.png" width="200" alt="Pixel art: la cuenca-árbol con títulos de videojuego">
+<img src="out/caricatura/poster.png" width="200" alt="Caricatura: la cuenca-árbol con letras de dibujos animados">
+<img src="out/papel/poster.png" width="200" alt="Papel recortado: la cuenca-árbol con letras de cartulina">
+</p>
 
-![Storyboard: fotogramas clave](out/v4/storyboard.jpg)
+![Storyboard: fotogramas clave (lápiz de color)](out/v4/storyboard.jpg)
 
 ---
 
@@ -65,13 +77,76 @@ Casi sin texto: todo se cuenta con imágenes, y las únicas palabras llegan al f
   (roble, aliso, encenillo, sietecueros, cucharo), corredor ecológico, trabajo comunitario, protección de fuentes
   hídricas y las cifras del programa (+261.000 árboles, 20 municipios de Cundinamarca).
 - **Música original:** compuesta y sintetizada en código (`film/audio/`): quena, tiple (Karplus-Strong), marimba,
-  arpa, cuerdas, coro por formantes, bajo y bombo, a 120 BPM en Re mayor. Sin muestras ni grabaciones de terceros.
+  arpa, cuerdas, coro por formantes, bajo y bombo, a 120 BPM en Re mayor. Las versiones nuevas usan la misma
+  partitura con otros instrumentos, también sintetizados (chip, orquesta de caricatura, artesanal). Sin muestras
+  ni grabaciones de terceros.
 - **Sin contenido de terceros:** cada cuadro se dibuja con código; no hay fotos, videos ni ilustraciones ajenas.
 - **Sin personas identificables:** los personajes son dibujos genéricos y no hay voces.
 - **Tipografías:** *Caveat* y *Patrick Hand* (Google Fonts, SIL Open Font License 1.1; licencias en `assets/fonts/`).
+  La tipografía pixel de la versión pixel art es propia, dibujada letra por letra en el código.
 - **Apto para todo público.**
 
-## Técnica
+## Tres versiones nuevas: pixel art, caricatura y papel recortado
+
+La misma historia, la misma cámara y la misma música (compuesta para el guion) contadas en tres
+lenguajes visuales distintos. Todo sigue siendo código JavaScript: el guion (`film/story.js`), las
+cámaras (`film/cameras.js`) y el mundo (`film/world/`) son los mismos; cambia el **pincel** con que
+se pinta cada forma, la **postproducción**, los **efectos propios de cada lenguaje**, los **títulos** y
+la **instrumentación** de la banda sonora. Se elige con la variable `STYLE`.
+
+### 1 · Pixel art (`STYLE=pixel`)
+
+- **Resolución real de pixel art:** el mundo se dibuja a **216 × 384** y se amplía ×5 sin suavizar. Un
+  contexto de lienzo "escalado" (`film/style.js`) deja que el mismo código de dibujo pinte directamente
+  en esa cuadrícula.
+- **Paleta propia de 98 colores** (`film/styles/pixel-palette.json`): se generó a partir de la propia
+  película (k-means en el espacio Oklab sobre cuadros de todo el guion) y se completó con rampas
+  dibujadas a mano con cambio de tono (cielo, atardecer, noche, tormenta, tierra, piel, agua).
+- **Tramado ordenado (Bayer 4 × 4)**, estable cuadro a cuadro: los degradados del cielo, la bruma y los
+  haces de luz se resuelven con el tramado clásico de las consolas.
+- **Sprites con contorno "sel-out"**: la gota, los osos, la gente y el colibrí se pintan en su propia
+  capa y reciben un contorno de 1 píxel del color de su borde, oscurecido.
+- **Detalles de videojuego:** globos de emoción (¡!, ?, …, ♥) sobre los personajes, lluvia de un píxel,
+  transición de **mosaico** en el salto del tiempo y un brillo suave sobre los píxeles (luz "HD-2D").
+- **Tipografía pixel propia** de 5 × 7 con tildes (`film/styles/pixelfont.js`), dibujada letra por letra
+  en el código; los títulos se escriben como en los diálogos de un juego, con un "bip" por letra.
+- **Música chip** (`film/audio/voices.js`): pulsos de ancho variable sin aliasing (polyBLEP), triángulo
+  de 4 bits, ruido LFSR para la percusión, arpegios de acorde, eco de cinta; cada siembra es una
+  "moneda" afinada que sube, y la gota se recarga con un *power-up*. Una capa suave de cuerdas y coro
+  le da cuerpo de cine.
+
+### 2 · Caricatura (`STYLE=cartoon`)
+
+- **Tinta de grosor variable:** cada forma lleva un contorno que se pinta *detrás* del relleno (así
+  queda por fuera y las uniones no se ven); más grueso y oscuro en los personajes, más fino y del color
+  del objeto en el terreno, y se desvanece con la bruma hasta que el fondo queda "pintado".
+- **Colores planos y sombras duras (cel)**, etalonaje más saturado, profundidad de campo de cámara
+  multiplano y la misma luz volumétrica de la versión 4.
+- **Lenguaje de dibujos animados:** **iris** que abre sobre la gota y se cierra al final, **líneas de
+  velocidad** en la caída y el salto, **estrellas de impacto**, estirar y encoger exagerado, nubecitas
+  de polvo en la carrera del osezno, **rayo en zigzag** con tinta y letras "gorditas" con rebote.
+- **Orquesta de caricatura:** clarinete (melodía), pizzicato y tuba (el bambuco), xilófono, metales en
+  el clímax, timbales, platillos, bloque de madera (el tic-tac del time-lapse), **silbato de émbolo** en
+  la caída y en el salto, y un **trombón triste ("wah-wah")** cuando la regadera está vacía.
+
+### 3 · Papel recortado: un libro pop-up (`STYLE=paper`) — la sorpresa
+
+- **Cada forma es una pieza de cartulina:** color plano con **fibras de papel**, un **canto de corte**
+  claro que atrapa la luz y una **sombra suave** sobre lo que tiene detrás; el terreno, que ya estaba
+  hecho de cortes paralelos al cauce, se vuelve un **diorama de capas**.
+- **Stop-motion:** las piezas tiemblan un poquito cada dos cuadros, como cuando se animan a mano.
+- **Un libro pop-up:** la película abre con una **portada de cartulina** ("Sembrar agua") cuya página
+  **se da vuelta** (giro con perspectiva, sombra y luz) para mostrar la historia; el salto en el tiempo
+  es otro **pase de página**.
+- Lluvia de **gotitas de cartulina**, sol con corona de picos, estrellas de papel en la noche y **letras
+  recortadas** que caen sobre la página en los títulos.
+- **Música artesanal:** silbido (melodía), tiple y ukelele con palmas, kalimba, caja de música, armonio,
+  y el sonido del papel (crujidos, tijeras, el pase de página).
+
+En las tres, al terminar los créditos (que incluyen **"Creado por: Sergio Pardo Osorio"**) la gota se
+asoma junto al título y se despide.
+
+## Técnica (versión 4, lápiz de color)
 
 Investigando cómo se hicieron las animaciones más celebradas hechas con Claude Opus 5.5 (repositorios y
 publicaciones que recopilan esos trabajos), aparecen siempre las mismas ideas: **cada cuadro es una función pura
@@ -111,10 +186,14 @@ npm install
 pip install imageio-ffmpeg                   # o exporta FFMPEG=/ruta/a/ffmpeg
 
 node --expose-gc film/build.js               # música + video + mezcla → out/v4/sembrar_agua_41s.mp4
+STYLE=pixel   node --expose-gc film/build.js # → out/pixel/sembrar_agua_pixel_41s.mp4
+STYLE=cartoon node --expose-gc film/build.js # → out/caricatura/sembrar_agua_caricatura_41s.mp4
+STYLE=paper   node --expose-gc film/build.js # → out/papel/sembrar_agua_papel_41s.mp4
 
 # durante la edición
 node film/audio/score.js                     # sólo la banda sonora
-node --expose-gc film/still.js 1.5 20 39     # cuadros sueltos en out/stills/
+node --expose-gc film/still.js 1.5 20 39     # cuadros sueltos en out/stills/ (con STYLE=… para otra versión)
+STYLE=pixel node --expose-gc film/styles/pixel-palette-build.js   # regenerar la paleta del pixel art
 STRIDE=4 node --expose-gc film/render.js     # vista previa rápida (1 de cada 4 cuadros)
 node --expose-gc film/render.js 26 30        # re-renderizar un tramo
 node film/build.js --mux-only                # volver a unir sin re-dibujar
@@ -133,9 +212,13 @@ film/
   world/               geografía, terreno, agua, cielo, flora, personajes, pueblo
   core/                motor de lápiz, papel, ruido, color, interpolación
   audio/               sintetizador y partitura
-  render.js build.js still.js
+  style.js             selector de estilo (STYLE) y lienzo escalado para el pixel art
+  styles/              pinceles y efectos de cada versión: pixel, caricatura, papel (libro pop-up),
+                       paleta y tipografía pixel, títulos y despedida
+  render.js build.js still.js poster.js
 src/                   versión 3 (40 s, vista cenital) — se conserva como referencia
-out/v4/                video, banda sonora, póster y storyboard de esta versión
+out/v4/                lápiz de color: video, banda sonora, póster y storyboard
+out/pixel/ out/caricatura/ out/papel/   las tres versiones nuevas
 ```
 
 ## Versión anterior

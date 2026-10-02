@@ -171,9 +171,10 @@ export function drawCover(D, cv, t) {
   D.shape(rectPts(84, 84, W - 168, H - 168, 3), '#f4ead6', { seed: 4, smooth: false, still: true });
   // cielo, sol y montañas de papel
   D.shape(rectPts(108, 108, W - 216, 1100, 3), '#a9d6ea', { seed: 5, smooth: false, still: true });
-  const sun = ellipsePts(780, 400, 92, 92, 26);
+  // el sol asoma detrás de las montañas (no tapa el título)
+  const sun = ellipsePts(800, 690, 96, 96, 26);
   D.shape(sun, '#ffd36a', { seed: 6 });
-  D.shape(ellipsePts(780, 400, 66, 66, 22), '#ffe9a6', { seed: 7 });
+  D.shape(ellipsePts(800, 690, 70, 70, 22), '#ffe9a6', { seed: 7 });
   const hill = (y0, amp, col, seed) => {
     const pts = [];
     for (let i = 0; i <= 24; i++) { const x = 108 + (i / 24) * (W - 216); pts.push([x, y0 - amp * (0.6 + 0.4 * Math.sin(i * 0.7 + seed)) * Math.sin((i / 24) * Math.PI)]); }

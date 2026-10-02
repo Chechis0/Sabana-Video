@@ -3,7 +3,8 @@ import { Path2D } from '@napi-rs/canvas';
 import { W, H } from '../timeline.js';
 import { clamp, lerp, mix, noise1, fbm2, mulberry32, hexToRgb, rgba, shade } from '../core/math.js';
 import { glow } from '../engine/post.js';
-import { PENCIL, PIXEL, PX } from '../style.js';
+import { PENCIL, PIXEL, PAPER, PX } from '../style.js';
+import { drawCloud } from './town.js';
 
 export function drawSky(D, cam, env) {
   const ctx = D.ctx;
@@ -83,6 +84,22 @@ export function drawStars(D, cam, env, t) {
   for (const st of STARS) {
     const x = st.x * W, y = st.y * (cam.lensY - 60);
     const tw = 0.6 + 0.4 * Math.sin(t * 7 + st.ph * 3);
+    if (PAPER && st.s > 1.7) {
+      // estrellitas de cartulina con su sombra
+      const R = 4 + st.s * 3.2;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(st.ph);
+      ctx.globalAlpha = k;
+      ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 4; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 4;
+      ctx.beginPath();
+      for (let q = 0; q < 10; q++) { const a = (q / 10) * Math.PI * 2 - Math.PI / 2, rr = q % 2 ? R * 0.45 : R; q ? ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+      ctx.closePath();
+      ctx.fillStyle = tw > 0.8 ? '#fff6c4' : '#f4e7a8';
+      ctx.fill();
+      ctx.restore();
+      continue;
+    }
     if (PIXEL) {
       // estrellas de un píxel; las grandes, una crucecita que titila
       const px = Math.floor(x / PX) * PX, py = Math.floor(y / PX) * PX;
@@ -161,5 +178,21 @@ export function addRanges(stage, cam, env) {
       D.shape(pts, env.rangeTint ? mix(R.col, env.rangeTint, 0.5) : R.col, { seed: R.seed, smooth: false, edge: 3, angle: -0.5, jitter: 0.6, still: true });
       D.restore();
     }, { haze: 0.8 });
+  }
+}
+
+// nubes de día en el cielo (versiones nuevas): a direcciones fijas, como el sol; se apartan del sol
+// y desaparecen de noche y en la tormenta
+const SKY_CLOUDS = [[-0.95, 0.44, 300, 11], [-0.38, 0.6, 230, 12], [0.22, 0.4, 330, 13], [0.68, 0.53, 250, 14], [1.08, 0.34, 300, 15], [-1.32, 0.3, 270, 16], [0.02, 0.75, 210, 17]];
+export function drawSkyClouds(D, cam, env, t, sun) {
+  const day = clamp((env.sun?.k ?? 0) * 1.2) * (1 - clamp((env.clouds || 0) * 2)) * (1 - clamp((env.stars || 0) * 2)) * (1 - clamp((env.rain || 0) * 3));
+  if (day <= 0.02) return;
+  const warm = env.skyHor || '#ffffff';
+  for (const [az, el, size, seed] of SKY_CLOUDS) {
+    const [x, y] = cam.dir(az + t * 0.006, el);
+    if (y > cam.lensY - size * 0.2) continue;
+    if (sun && Math.hypot(x - sun[0], y - sun[1]) < size * 1.1) continue;
+    const col = mix('#ffffff', warm, 0.25), sh = mix('#d6e2ee', env.skyMid || '#d6e2ee', 0.35);
+    drawCloud(D, [x, y, 1], size, 900 + seed, t, col, sh, 0.95 * day);
   }
 }

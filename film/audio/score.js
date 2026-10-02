@@ -206,7 +206,7 @@ if (CARTOON) {
 // ================================================================ 2 · Revelación del páramo (4–6 s)
 if (PIXEL) mix.add(chipKick(), 4.0, 0.6, 0, 0.3);
 else mix.add(bombo(1.4, 70), 4.0, 0.55, 0, 0.3);
-if (CARTOON) { mix.add(cymbal(2.4, 4), 4.0, 0.16, 0.2, 0.4); mix.add(timpani('D2', 1.6), 4.0, 0.4, 0, 0.3); }
+if (CARTOON) { mix.add(cymbal(2.4, 4), 4.0, 0.13, 0.2, 0.4); mix.add(timpani('D2', 1.6), 4.06, 0.28, 0, 0.3); }
 if (PAPER) mix.add(rustle(0.9, 11, 220), 4.0, 0.18, 0.3, 0.2);
 vStrum(4.0, ['D3', 'A3', 'D4', 'F#4', 'A4', 'D5'], { gain: 0.36, seed: 4, dur: 2.2 });
 strChord(4.0, ['D3', 'A3', 'F#4', 'A4', 'D5'], 2.4, 1.1, { att: 0.5, rel: 0.8 });
@@ -302,7 +302,7 @@ plantTimes.forEach((t, i) => {
   mix.add(pop(), t, 0.14, pan, 0.2);
   if (CARTOON) { mix.add(xylo(N(plantNotes[i]) * 2, 0.7), t, 0.32, pan * 0.8, 0.35); mix.add(pizz(N(plantNotes[i]), 0.6), t, 0.3, pan * 0.8, 0.3); }
   else if (PAPER) { mix.add(kalimba(N(plantNotes[i]) * 2, 1.2), t, 0.34, pan * 0.8, 0.35); mix.add(tipleNote(N(plantNotes[i]), 1.2, { bright: 0.7, seed: 400 + i }), t, 0.3, pan * 0.8, 0.35); mix.add(snip(90 + i), t - 0.12, 0.08, pan, 0.1); }
-  else mix.add(tipleNote(N(plantNotes[i]), 1.4, { bright: 0.85, seed: 400 + i }), t, 0.5, pan * 0.8, 0.35);
+  else mix.add(tipleNote(N(plantNotes[i]), 1.4, { bright: 0.85, seed: 400 + i }), t, 0.5, i % 2 ? 0.25 : -0.25, 0.35);
   vBell(t + 0.01, N(plantNotes[i]) * 2, 0.9, { ratio: 3, index: 1 }, 0.03, 0, 0.5);
 });
 ['G', 'D', 'Em', 'A'].forEach((ch, i) => {
@@ -415,7 +415,7 @@ mix.add(PIXEL ? lfsr(1.4, { rate: 3000, decay: 0.5, seed: 74 }) : whoosh(1.4, 12
 if (PAPER) mix.add(rustle(1.4, 35, 260), 35.0, 0.2, 0, 0.3);
 choirChord(35.0, ['D4', 'A4', 'F#5'], 6.0, 0.8, { att: 1.0, rel: 2.5 });
 mix.add(PIXEL ? chipKick() : bombo(1.6, 60), 36.0, 0.6, 0, 0.4);
-if (CARTOON) { mix.add(cymbal(3.2, 18), 36.0, 0.22, 0, 0.5); mix.add(timpani('D2', 2.2), 36.0, 0.5, 0, 0.4); }
+if (CARTOON) { mix.add(cymbal(3.2, 18), 36.0, 0.15, 0, 0.5); mix.add(timpani('D2', 2.2), 36.08, 0.3, 0, 0.4); }
 vStrum(36.0, ['D3', 'A3', 'D4', 'F#4', 'A4', 'D5'], { gain: 0.34, seed: 97, dur: 2.5 });
 strChord(36.0, ['D2', 'D3', 'A3', 'F#4', 'A4', 'E5'], 5.0, 0.75, { att: 0.6, rel: 2.2 });
 mix.add(PIXEL ? tri(N('D2'), 2.6) : bass(N('D2'), 3), 36.0, 0.42, 0, 0.1);
@@ -449,14 +449,37 @@ vBell(T.credits + 0.3, N('A6'), 2.6, { ratio: 2, index: 1 }, 0.07, 0.3, 0.6);
 if (CARTOON) { mix.add(brass('D4', 1.6, { bright: 1, seed: 90 }), T.credits, 0.1, -0.2, 0.5); mix.add(brass('F#4', 1.6, { bright: 1, seed: 91 }), T.credits, 0.09, 0, 0.5); mix.add(brass('A4', 1.6, { bright: 1, seed: 92 }), T.credits, 0.08, 0.2, 0.5); mix.add(cymbal(2.6, 30), T.credits, 0.12, 0, 0.5); }
 if (!PIXEL) for (let k = 0; k < 5; k++) mix.add(chirp(700 + k, 3), 37.5 + k * 0.6, 0.04, k % 2 ? -0.7 : 0.7, 0.5);
 // caricatura: el iris se cierra con un "¡ta-da!"
-if (CARTOON) { mix.add(xylo('D6', 0.4), 40.35, 0.22, 0, 0.3); mix.add(xylo('A6', 0.6), 40.5, 0.24, 0, 0.3); mix.add(timpani('D2', 0.8), 40.5, 0.3, 0, 0.3); }
+if (CARTOON) { mix.add(xylo('D6', 0.4), 40.55, 0.22, 0, 0.3); mix.add(xylo('A6', 0.6), 40.8, 0.24, 0, 0.3); mix.add(timpani('D2', 0.6), 40.8, 0.26, 0, 0.3); }
+
+// ================================================================ papel: el libro (portada y pases de página)
+if (PAPER) {
+  mix.add(rustle(0.7, 41, 340), 0.4, 0.34, 0.35, 0.2);
+  mix.add(whoosh(0.5, 300, 2200, 42), 0.55, 0.12, 0.2, 0.2);
+  mix.add(thud(43), 1.0, 0.1, -0.2, 0.2);
+  mix.add(rustle(0.65, 44, 340), 22.7, 0.3, 0.35, 0.2);
+  mix.add(whoosh(0.45, 300, 2200, 45), 22.85, 0.1, 0.2, 0.2);
+  // letras recortadas que caen sobre la página
+  for (let i = 0; i < 6; i++) mix.add(snip(60 + i), T.title1 + i * 0.12, 0.05, (i % 2 ? 0.3 : -0.3), 0.1);
+  for (let i = 0; i < 6; i++) mix.add(snip(70 + i), T.title2 + i * 0.12, 0.05, (i % 2 ? 0.3 : -0.3), 0.1);
+}
 
 // ================================================================ mezcla final
 const [wL, wR] = reverb(mix.rL, mix.rR, { room: PIXEL ? 0.78 : 0.86, damp: PIXEL ? 0.4 : 0.28 });
 const L = new Float32Array(mix.n), R = new Float32Array(mix.n);
 for (let i = 0; i < mix.n; i++) { L[i] = mix.L[i] + wL[i] * 0.95; R[i] = mix.R[i] + wR[i] * 0.95; }
-let peak = 0;
-for (let i = 0; i < mix.n; i++) peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
+let peak = 0, peakAt = 0;
+for (let i = 0; i < mix.n; i++) { const v = Math.max(Math.abs(L[i]), Math.abs(R[i])); if (v > peak) { peak = v; peakAt = i / SR; } }
+// sonoridad por tramos (para equilibrar la mezcla)
+if (process.env.LEVELS) {
+  const rows = [];
+  for (let s0 = 0; s0 < DUR; s0 += 1) {
+    let e = 0, pk = 0;
+    for (let i = Math.round(s0 * SR); i < Math.round((s0 + 1) * SR); i++) { e += L[i] * L[i] + R[i] * R[i]; pk = Math.max(pk, Math.abs(L[i]), Math.abs(R[i])); }
+    rows.push(`${s0}s rms ${(10 * Math.log10(e / (2 * SR) + 1e-12)).toFixed(1)} pk ${pk.toFixed(2)}`);
+  }
+  console.log(rows.join('\n'));
+}
+console.log('pico en', peakAt.toFixed(2), 's');
 const g = 1.3 / peak;
 const lim = (x) => Math.tanh(x * g) * 0.9;
 const nOut = Math.round(DUR * SR);

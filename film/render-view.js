@@ -5,7 +5,7 @@ import { makePaper, makeTooth, makeVignette } from './core/paper.js';
 import { W, H } from './timeline.js';
 import { Stage } from './engine/stage.js';
 import { godRays, bloom, grade, paperPass, glow } from './engine/post.js';
-import { drawSky, drawSun, drawMoon, drawStars, drawRainbow } from './world/sky.js';
+import { drawSky, drawSun, drawMoon, drawStars, drawRainbow, drawSkyClouds } from './world/sky.js';
 import { addWorld } from './world/world.js';
 import { streamZ } from './world/geo.js';
 import { gradeFilter } from './world/envs.js';
@@ -74,6 +74,7 @@ export function renderView(D, canvas, cam, env, t, frame, S = {}, extra = null, 
   if (PAPER && env.sun && env.sun.k > 0.05) { const [sx, sy] = cam.dir(env.sun.az, env.sun.el); paperSunRays(ctx, sx, sy, env.sun.r ?? 46, env.sun.k, t); }
   const sun = drawSun(D, cam, env);
   drawRainbow(D, cam, env);
+  if (!PENCIL) drawSkyClouds(D, cam, env, t, sun);
   T0 = ph('sky', T0);
   // mundo
   D.shadowK = env.longShadow || 0;
